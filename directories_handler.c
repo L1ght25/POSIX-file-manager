@@ -49,7 +49,7 @@ int get_files_in_path(const char *curr_path, MetaFile *files, size_t *size, bool
 
 void directory_handler(WINDOW *win, const char *input_path) {
     void *lib;
-    char *(*get_program_command)(const char* extension) = get_extensions_handler("libextensions.so", "get_program_command", lib);
+    char *(*get_program_command)(const char* extension) = get_extensions_handler("libextensions.so", "get_program_command", &lib);
     if (!get_program_command) {
         perror("Invalid extensions programs");
         exit(1);
@@ -119,7 +119,7 @@ void directory_handler(WINDOW *win, const char *input_path) {
                 }
                 break;
             case 'd':
-                if (strcmp(files[selected_dir].name, "..")) {  // we should not delete .. directory)
+                if (files[selected_dir].filetype != DT_DIR) {  // we should not delete directories)
                     snprintf(tmp_path, PATH_MAX, "%s/%s", current_path, files[selected_dir].name);
                     int err = remove(tmp_path);
                     if (err) {
@@ -135,6 +135,9 @@ void directory_handler(WINDOW *win, const char *input_path) {
             case 'c':  // the last operation has priority to move_buffers
                 move_status = symb == 'c' ? TO_COPY : TO_MOVE;
                 snprintf(moved_path, PATH_MAX, "%s/%s", current_path, files[selected_dir].name);
+                char command[PATH_MAX];
+                sprintf(command, "echo %s | xsel -b", moved_path);
+                system(command);
                 break;
             case 'v':
                 if (files[selected_dir].filetype == DT_DIR && move_status != WAS_NOT_SELECTED) {

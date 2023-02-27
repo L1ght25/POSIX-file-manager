@@ -30,6 +30,6 @@ int comparator_of_files(const void *first, const void *second);
 
 int move_files(const char *src, const char *dest_path, const char *dest_name);
 
-void *get_extensions_handler(const char *path_to_lib, const char *name_of_prog, void *lib);
+void *get_extensions_handler(const char *path_to_lib, const char *name_of_prog, void **lib);
 
 #endif
