@@ -1,3 +1,5 @@
+#include <curses.h>
+#include <dlfcn.h>
 #include <ncurses.h>
 #include <fcntl.h>
 #include <linux/limits.h>
@@ -8,6 +10,8 @@
 #include <sys/stat.h>
 #include "utils.h"
 #include "directories_handler.h"
+#include "extensions.h"
+#include <libgen.h>
 
 void print_directories(WINDOW *win, int begin_str, MetaFile *files, int size_of_files, int curr_dir);
 
@@ -36,7 +40,6 @@ int get_files_in_path(const char *curr_path, MetaFile *files, size_t *size, bool
             return -1;
         }
         files[i++] = (MetaFile){ .name = curr_dir->d_name, .modified_time = statbuf.st_mtime, .size = statbuf.st_size, .filetype = curr_dir->d_type};
-        // files[i - 1].filetype = curr_dir->d_type == DT_DIR ? IS_DIR : IS_FILE;
     }
     qsort(files, i, sizeof(*files), comparator_of_files);
     *size = i;
@@ -45,11 +48,17 @@ int get_files_in_path(const char *curr_path, MetaFile *files, size_t *size, bool
 }
 
 void directory_handler(WINDOW *win, const char *input_path) {
+    void *lib;
+    char *(*get_program_command)(const char* extension) = get_extensions_handler("libextensions.so", "get_program_command", lib);
+    if (!get_program_command) {
+        perror("Invalid extensions programs");
+        exit(1);
+    }
     DIR *dir = opendir(input_path);
     if (!dir) {
         return;
     }
-    
+
     int selected_dir = 0;
     int begin_str = 0;
     int move_status = WAS_NOT_SELECTED;
@@ -59,7 +68,6 @@ void directory_handler(WINDOW *win, const char *input_path) {
     strcpy(current_path, input_path);
     char tmp_path[PATH_MAX];
     char moved_path[PATH_MAX];
-    char moved_name[PATH_MAX];
     MetaFile files[MAX_FILES_IN_DIR];
 
     size_t count_of_files = 0;
@@ -97,6 +105,17 @@ void directory_handler(WINDOW *win, const char *input_path) {
                     strcpy(current_path, tmp_path);
                     begin_str = 0;
                     selected_dir = 0;
+                } else {
+                    const char *extension = strrchr(files[selected_dir].name, '.');
+                    if (extension != NULL) {
+                        char *command = get_program_command(extension);
+                        if (command != NULL) {
+                            snprintf(tmp_path, PATH_MAX, "%s/%s", current_path, files[selected_dir].name);
+                            endwin();
+                            run_program(command, tmp_path);
+                            initscr();
+                        }
+                    }
                 }
                 break;
             case 'd':
@@ -116,12 +135,11 @@ void directory_handler(WINDOW *win, const char *input_path) {
             case 'c':  // the last operation has priority to move_buffers
                 move_status = symb == 'c' ? TO_COPY : TO_MOVE;
                 snprintf(moved_path, PATH_MAX, "%s/%s", current_path, files[selected_dir].name);
-                strcpy(moved_name, files[selected_dir].name);
                 break;
             case 'v':
                 if (files[selected_dir].filetype == DT_DIR && move_status != WAS_NOT_SELECTED) {
                     snprintf(tmp_path, PATH_MAX, "%s/%s", current_path, files[selected_dir].name);
-                    int err = move_files(moved_path, tmp_path, moved_name);
+                    int err = move_files(moved_path, tmp_path, basename(moved_path));
                     if (err) {
                         exit(err);
                     }
@@ -138,6 +156,11 @@ void directory_handler(WINDOW *win, const char *input_path) {
             case 'h':
                 all_files = !all_files;
                 get_files_in_path(current_path, files, &count_of_files, all_files);
+                break;
+            case 'q':
+                wclear(win);
+                dlclose(lib);
+                return;
         }
         print_directories(win, begin_str, files, count_of_files, selected_dir);
     }

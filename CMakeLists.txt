@@ -3,5 +3,6 @@ project(file_manager)
 
 find_package(Curses REQUIRED)
 include_directories(${CURSES_INCLUDE_DIR})
-add_executable(file_manager main.c directories_handler.c print_funcs.c utils.c)
+add_executable(file_manager main.c directories_handler.c print_funcs.c utils.c extensions.c)
+target_link_libraries(file_manager ${CMAKE_SOURCE_DIR}/extensions_dinlyb/libextensions.so dl)
 target_link_libraries(file_manager ${CURSES_LIBRARIES})

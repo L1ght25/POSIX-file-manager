@@ -1,13 +1,13 @@
+#include "extensions.h"
+#include <fcntl.h>
+#include <unistd.h>
 
-
-char* get_program_command(char* extension) {
-  if (strcmp(extension, ".txt") == 0) {
-    return "vim $FILE";
-  }
-  else if (strcmp(extension, ".gz") == 0) {
-    return "gunzip $FILE";
-  }
-  else {
-    return NULL;
-  }
+void run_program(char *command, char *file_path) {
+    pid_t pid = fork();
+    if (!pid) {
+        char *args[] = {command, file_path, NULL};
+        execvp(args[0], args);
+    } else {
+        wait(NULL);
+    }
 }
