@@ -19,6 +19,10 @@ enum CUT_STATUS {
     TO_COPY
 };
 
+enum FILE_PASTE_STATUS {
+    HAS_SAME_PATH = 127
+};
+
 typedef struct {
     const char *name;
     long modified_time;

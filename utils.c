@@ -1,5 +1,6 @@
 #include "utils.h"
 #include <dlfcn.h>
+#include <stdio.h>
 
 
 int comparator_of_files(const void *first, const void *second) {
@@ -9,6 +10,14 @@ int comparator_of_files(const void *first, const void *second) {
 int move_files(const char *src, const char *dest_path, const char *dest_name) {
     char buf[MAX_BUF_SIZE];
     snprintf(buf, PATH_MAX, "%s/%s", dest_path, dest_name);
+
+    FILE * file = fopen(buf, "r");
+
+    if (file != NULL) {
+        fclose(file);
+        return HAS_SAME_PATH;
+    }
+
     int fd_in = open(src, O_RDWR);
     int fd_out = open(buf, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
     size_t size_of_read;

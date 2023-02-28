@@ -1,11 +1,10 @@
-#include <ncurses.h>
-#include <time.h>
-#include <dirent.h>
-#include "utils.h"
+#include "print_funcs.h"
 
-#define PRINT_WITH_COLOR(win, color, fmt, ...) wattron(win, COLOR_PAIR(color));   \
-wprintw(win, fmt, ##__VA_ARGS__);                                                 \
-wattroff(win, COLOR_PAIR(color))                                                  \
+
+void init_with_color_zero(int color_back, int color_words) {  // deprecated
+    start_color();
+    init_pair(0, color_words, color_back);
+}
 
 void print_directories(WINDOW *win, int begin_str, MetaFile *files, int size_of_files, int curr_dir) {
     wprintw(win, "%-20s %-20s %-20s\n", "File name", "Size of file", "Last modified time");
