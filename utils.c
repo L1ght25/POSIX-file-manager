@@ -32,20 +32,3 @@ int move_files(const char *src, const char *dest_path, const char *dest_name) {
     close(fd_out);
     return 0;
 }
-
-void *get_extensions_handler(const char *path_to_lib, const char *name_of_prog, void **lib) {
-    void *lib_handler = dlopen(path_to_lib, RTLD_LAZY);
-    if (!lib_handler) {
-        fprintf(stderr, "Error to load dynlib: %s\n", dlerror());
-        return NULL;
-    }
-
-    void *program = dlsym(lib_handler, name_of_prog);
-    if (!program) {
-        fprintf(stderr, "Error to load function %s from dynlib: %s\n", name_of_prog, dlerror());
-        dlclose(lib_handler);
-        return NULL;
-    }
-    *lib = lib_handler;
-    return program;
-}

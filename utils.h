@@ -23,6 +23,10 @@ enum FILE_PASTE_STATUS {
     HAS_SAME_PATH = 127
 };
 
+enum ERROR_STATUS {
+    INVALID_PATH = 1
+};
+
 typedef struct {
     const char *name;
     long modified_time;

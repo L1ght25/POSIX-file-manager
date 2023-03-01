@@ -1,1 +1,0 @@
-gcc -c -fPIC extensions_lib.c -o exts.o && gcc exts.o -shared -o libextensions.so && rm exts.o

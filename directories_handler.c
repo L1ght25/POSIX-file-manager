@@ -5,6 +5,7 @@
 #include <linux/limits.h>
 #include <dirent.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -48,11 +49,6 @@ int get_files_in_path(const char *curr_path, MetaFile *files, size_t *size, bool
 
 void directory_handler(WINDOW *win, const char *input_path) {
     void *lib;
-    char *(*get_program_command)(const char* extension) = get_extensions_handler("libextensions.so", "get_program_command", &lib);
-    if (!get_program_command) {
-        perror("Invalid extensions programs");
-        exit(1);
-    }
     DIR *dir = opendir(input_path);
     if (!dir) {
         return;
@@ -66,7 +62,10 @@ void directory_handler(WINDOW *win, const char *input_path) {
     char current_path[PATH_MAX];
     strcpy(current_path, input_path);
     char tmp_path[PATH_MAX];
+    char tmp_path1[PATH_MAX];
     char moved_path[PATH_MAX];
+    char extensions_path[PATH_MAX];
+    snprintf(extensions_path, PATH_MAX, "../%s", "extensions");
     MetaFile files[MAX_FILES_IN_DIR];
 
     size_t count_of_files = 0;
@@ -107,13 +106,17 @@ void directory_handler(WINDOW *win, const char *input_path) {
                 } else {
                     const char *extension = strrchr(files[selected_dir].name, '.');
                     if (extension != NULL) {
-                        char *command = get_program_command(extension);
-                        if (command != NULL) {
-                            snprintf(tmp_path, PATH_MAX, "%s/%s", current_path, files[selected_dir].name);
-                            endwin();
-                            run_program(command, tmp_path);
-                            initscr();
+                        snprintf(tmp_path, PATH_MAX, "%s/%s.so", extensions_path, extension + 1);
+                        snprintf(tmp_path1, PATH_MAX, "%s/%s", current_path, files[selected_dir].name);
+                        open_file_t file_func = get_file_func(tmp_path, &lib);
+                        if (!file_func) {
+                            wprintw(win, "Sorry, this extension is not supported yet :(\n");
+                            break;
                         }
+                        endwin();
+                        run_program(file_func, tmp_path1);
+                        dlclose(lib);
+                        initscr();
                     }
                 }
                 break;
@@ -171,7 +174,6 @@ void directory_handler(WINDOW *win, const char *input_path) {
                 break;
             case 'q':
                 wclear(win);
-                dlclose(lib);
                 return;
         }
         print_directories(win, begin_str, files, count_of_files, selected_dir);
