@@ -1,4 +1,5 @@
-#include <curses.h>
-#include <ncurses.h>
+#include <termios.h>
 
-WINDOW *initialize();
+struct termios initialize();
+
+void unitialize(struct termios oldt);

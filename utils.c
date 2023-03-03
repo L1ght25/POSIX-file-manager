@@ -1,6 +1,8 @@
 #include "utils.h"
+#include <dirent.h>
 #include <dlfcn.h>
 #include <stdio.h>
+#include <sys/stat.h>
 
 
 int comparator_of_files(const void *first, const void *second) {
@@ -30,5 +32,20 @@ int move_files(const char *src, const char *dest_path, const char *dest_name) {
     }
     close(fd_in);
     close(fd_out);
+    return 0;
+}
+
+int check_perms(char *path, unsigned char filetype) {
+    if (access(path, R_OK | W_OK) == -1) {
+        if (filetype == DT_LNK) {
+            struct stat buf;
+            if (lstat(path, &buf) || stat(path, &buf)) {
+                simple_print("Invalid symlink\n");
+                return 1;
+            }
+        }
+        simple_print("Sorry, you have not permissions to read this file/directory :(\n");
+        return 1;
+    }
     return 0;
 }
