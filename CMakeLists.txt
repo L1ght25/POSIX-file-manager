@@ -3,6 +3,6 @@ project(file_manager)
 
 find_package(Curses REQUIRED)
 include_directories(${CURSES_INCLUDE_DIR})
-add_executable(file_manager main.c directories_handler.c print_funcs.c utils.c extensions.c)
+add_executable(file_manager main.c directories_handler.c print_funcs.c utils.c extensions.c initialize.c)
 target_link_libraries(file_manager PUBLIC dl)
 target_link_libraries(file_manager PUBLIC ${CURSES_LIBRARIES})

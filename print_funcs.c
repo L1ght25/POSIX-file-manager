@@ -1,4 +1,6 @@
 #include "print_funcs.h"
+#include "utils.h"
+#include <ncurses.h>
 
 
 void init_with_color_zero(int color_back, int color_words) {  // deprecated
@@ -7,16 +9,11 @@ void init_with_color_zero(int color_back, int color_words) {  // deprecated
 }
 
 void print_directories(WINDOW *win, int begin_str, MetaFile *files, int size_of_files, int curr_dir) {
-    wprintw(win, "%-20s %-20s %-20s\n", "File name", "Size of file", "Last modified time");
-    start_color();
-    init_pair(0, COLOR_WHITE, COLOR_BLACK);
-    init_pair(1, COLOR_GREEN, COLOR_BLACK);
-    init_pair(2, COLOR_BLACK, COLOR_WHITE);
-    init_pair(3, COLOR_YELLOW, COLOR_BLACK);
-    init_pair(4, COLOR_BLUE, COLOR_BLACK);
+    int width_of_cols = -N_COLS / 3;
+    wprintw(win, "%*s%*s%s\n", width_of_cols, "File name", width_of_cols, "Size of file", "Last modified time");
     int cur_color = 0;
     int end_of_window = MIN(size_of_files, begin_str + N_ROWS - 1);
-    for (int i = begin_str; i < end_of_window; ++i) {
+    for (size_t i = begin_str; i < end_of_window; ++i) {
         cur_color = 0;
         if (files[i].filetype == DT_DIR) {
             if (files[i].size == -1) {
@@ -38,7 +35,6 @@ void print_directories(WINDOW *win, int begin_str, MetaFile *files, int size_of_
             cur_color = 2;
         }
         char *time = ctime(&files[i].modified_time);
-        PRINT_WITH_COLOR(win, cur_color, "%-20s %-20d %-20s", files[i].name, files[i].size, time);
+        PRINT_WITH_COLOR(win, cur_color, "%*s%*d%s", width_of_cols, files[i].name, width_of_cols, files[i].size, time);
     }
-    wmove(win, MIN(curr_dir + 1 - begin_str, N_ROWS - 1), 0);
 }

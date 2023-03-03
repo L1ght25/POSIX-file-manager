@@ -10,6 +10,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <libgen.h>
+#include <unistd.h>
 #include "utils.h"
 #include "directories_handler.h"
 #include "extensions.h"
@@ -37,9 +38,14 @@ int get_files_in_path(const char *curr_path, MetaFile *files, size_t *size, bool
         }
         snprintf(tmp_path, PATH_MAX, "%s/%s", curr_path, curr_dir->d_name);
         if (stat(tmp_path, &statbuf) == -1) {
-            return -1;
+            files[i++] = (MetaFile){.modified_time = -1, .size = -1, .filetype = curr_dir->d_type};
+        } else {
+            files[i++] = (MetaFile){.modified_time = statbuf.st_mtime, .size = statbuf.st_size, .filetype = curr_dir->d_type};
         }
-        files[i++] = (MetaFile){ .name = curr_dir->d_name, .modified_time = statbuf.st_mtime, .size = statbuf.st_size, .filetype = curr_dir->d_type};
+        strcpy(files[i - 1].name, curr_dir->d_name);
+        if (i >= MAX_FILES_IN_DIR) {
+            break;
+        }
     }
     qsort(files, i, sizeof(*files), comparator_of_files);
     *size = i;
@@ -64,8 +70,7 @@ void directory_handler(WINDOW *win, const char *input_path) {
     char tmp_path[PATH_MAX];
     char tmp_path1[PATH_MAX];
     char moved_path[PATH_MAX];
-    char extensions_path[PATH_MAX];
-    snprintf(extensions_path, PATH_MAX, "../%s", "extensions");
+    char *extensions_path = "../extensions";
     MetaFile files[MAX_FILES_IN_DIR];
 
     size_t count_of_files = 0;
@@ -74,7 +79,7 @@ void directory_handler(WINDOW *win, const char *input_path) {
     if (err) {
         exit(1);
     }
-
+    
     print_directories(win, begin_str, files, count_of_files, selected_dir);
     while (1) {
         int symb = wgetch(win);
@@ -97,6 +102,18 @@ void directory_handler(WINDOW *win, const char *input_path) {
                 }
                 break;
             case 10:
+                snprintf(tmp_path, PATH_MAX, "%s/%s", current_path, files[selected_dir].name);
+                if (access(tmp_path, R_OK | W_OK) == -1) {
+                    if (files[selected_dir].filetype == DT_LNK) {
+                        struct stat buf;
+                        if (lstat(tmp_path, &buf) || stat(tmp_path, &buf)) {
+                            wprintw(win, "Invalid symlink\n");
+                            break;
+                        }
+                    }
+                    wprintw(win, "Sorry, you have not permissions to read this file :(\n");
+                    break;
+                }
                 if (files[selected_dir].filetype == DT_DIR) {
                     snprintf(tmp_path, PATH_MAX, "%s/%s", current_path, files[selected_dir].name);
                     get_files_in_path(tmp_path, files, &count_of_files, all_files);
