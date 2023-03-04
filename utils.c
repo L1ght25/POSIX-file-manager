@@ -16,14 +16,14 @@ int move_files(const char *src, const char *dest_path, const char *dest_name, bo
     if (is_dir) {
         snprintf(buf,  sizeof(buf), "%s/%s", dest_path, dest_name);
         DIR *dir = opendir(buf);
-        if (dir != NULL) {
+        if (dir != NULL || !strcmp(src, buf)) {
             return HAS_SAME_PATH;
         }
         snprintf(buf, sizeof(buf), "cp -r %s %s/%s", src, dest_path, dest_name);
         return system(buf);
     }
     snprintf(buf, PATH_MAX, "%s/%s", dest_path, dest_name);
-    
+
     FILE * file = fopen(buf, "r");
 
     if (file != NULL) {

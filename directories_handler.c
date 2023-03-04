@@ -198,6 +198,15 @@ void directory_handler(const char *input_path) {
                     if (err) {
                         break;
                     }
+                    if (move_dir) {
+                        err = check_perms(moved_path, DT_DIR);
+                        if (err) {
+                            break;
+                        }
+                        if (!strcmp(moved_path, tmp_path)) {
+                            simple_print("Sorry, you can not cut-copy directory to itself\n");
+                        }
+                    }
                     err = move_files(moved_path, tmp_path, basename(moved_path), move_dir);
                     if (err == HAS_SAME_PATH) {
                         simple_print("Sorry, file with the same name is in this directory.\n");
