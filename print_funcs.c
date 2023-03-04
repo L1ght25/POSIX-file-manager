@@ -17,7 +17,7 @@ void print_directories(int begin_str, MetaFile *files, int size_of_files, int cu
                 if (curr_dir == i) {
                     cur_color = SELECTED_FILE_COLOR;
                 }
-                print_color("..\n", FG_BLACK + (cur_color == SELECTED_FILE_COLOR ? SELECTED_FILE_COLOR : 1), BG_BLACK + cur_color);
+                print_color("..\n", FG_BLACK + (cur_color == SELECTED_FILE_COLOR ? 0 : 1), BG_BLACK + cur_color);
                 continue;
             }
             if (cur_color != SELECTED_FILE_COLOR) {
@@ -33,6 +33,6 @@ void print_directories(int begin_str, MetaFile *files, int size_of_files, int cu
         }
         char *time = ctime(&files[i].modified_time);
         snprintf(buf, MAX_PRINT_BUF_SIZE, "%*s%*d%s", width_of_cols, files[i].name, width_of_cols, files[i].size, time);
-        print_color(buf, FG_BLACK + (cur_color == 0 ? 7 : cur_color), BG_BLACK + (cur_color == SELECTED_FILE_COLOR ? SELECTED_FILE_COLOR : 0));
+        print_color(buf, FG_BLACK + (cur_color == 0 ? 7 : cur_color == SELECTED_FILE_COLOR ? 0 : cur_color), BG_BLACK + (cur_color == SELECTED_FILE_COLOR ? SELECTED_FILE_COLOR : 0));
     }
 }
