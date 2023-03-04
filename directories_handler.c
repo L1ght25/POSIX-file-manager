@@ -16,6 +16,9 @@
 #include "print_funcs.h"
 #include "no_ncurses_lib/main_funcs.h"
 
+int N_ROWS;
+int N_COLS;
+
 int get_files_in_path(const char *curr_path, MetaFile **files, size_t *size, bool all_files) {
     DIR *dir = opendir(curr_path);
     if (!dir) {
@@ -70,6 +73,7 @@ void directory_handler(const char *input_path) {
         return;
     }
 
+    bool move_dir = false;
     int selected_dir = 0;
     int begin_str = 0;
     int move_status = WAS_NOT_SELECTED;
@@ -182,6 +186,7 @@ void directory_handler(const char *input_path) {
             case 'c':  // the last operation has priority to move_buffers
                 move_status = symb == 'c' ? TO_COPY : TO_MOVE;
                 snprintf(moved_path, PATH_MAX, "%s/%s", current_path, files[selected_dir].name);
+                move_dir = files[selected_dir].filetype == DT_DIR;
                 // char command[PATH_MAX];
                 // sprintf(command, "echo %s | xsel -b", moved_path);  // attempts to send filename to system buffer
                 // system(command);
@@ -193,9 +198,10 @@ void directory_handler(const char *input_path) {
                     if (err) {
                         break;
                     }
-                    err = move_files(moved_path, tmp_path, basename(moved_path));
+                    err = move_files(moved_path, tmp_path, basename(moved_path), move_dir);
                     if (err == HAS_SAME_PATH) {
                         simple_print("Sorry, file with the same name is in this directory.\n");
+                        break;
                     }
                     else if (err) {
                         free(files);
@@ -203,7 +209,16 @@ void directory_handler(const char *input_path) {
                     }
                     err = 0;
                     if (move_status == TO_MOVE) {
-                        err = remove(moved_path);
+                        if (move_dir) {
+                            err = check_perms(moved_path, DT_DIR);
+                            if (err) {
+                                break;
+                            }
+                            snprintf(tmp_path, PATH_MAX, "rm -r %s", moved_path);
+                            err = system(tmp_path);
+                        } else {
+                            err = remove(moved_path);
+                        }
                     }
                     if (err) {
                         free(files);

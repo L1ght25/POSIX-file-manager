@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <time.h>
 #ifndef _UTILS_H
 #define _UTILS_H 1
@@ -13,7 +14,7 @@
 #define MIN(first_arg, second_arg) ((first_arg) > (second_arg) ? (second_arg) : (first_arg))
 #define MAX(first_arg, second_arg) ((first_arg) > (second_arg) ? (first_arg) : (second_arg))
 
-enum { N_COLS = 80, N_ROWS = 24, MAX_FILES_IN_DIR = 4096, MAX_BUF_SIZE = 8192, MAX_PRINT_BUF_SIZE = 4096 };
+enum { MAX_FILES_IN_DIR = 4096, MAX_BUF_SIZE = 8192, MAX_PRINT_BUF_SIZE = 4096 };
 
 enum CUT_STATUS {
     WAS_NOT_SELECTED,
@@ -38,7 +39,7 @@ typedef struct {
 
 int comparator_of_files(const void *first, const void *second);
 
-int move_files(const char *src, const char *dest_path, const char *dest_name);
+int move_files(const char *src, const char *dest_path, const char *dest_name, bool is_dir);
 
 void *get_extensions_handler(const char *path_to_lib, const char *name_of_prog, void **lib);
 

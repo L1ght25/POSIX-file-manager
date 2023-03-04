@@ -3,6 +3,9 @@
 #include "utils.h"
 #include <stdio.h>
 
+int N_ROWS;
+int N_COLS;
+
 
 void print_directories(int begin_str, MetaFile *files, int size_of_files, int curr_dir) {
     int width_of_cols = -N_COLS / 3;

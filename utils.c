@@ -1,7 +1,9 @@
 #include "utils.h"
 #include <dirent.h>
 #include <dlfcn.h>
+#include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/stat.h>
 
 
@@ -9,10 +11,19 @@ int comparator_of_files(const void *first, const void *second) {
     return strcmp(((const MetaFile *)first)->name, ((const MetaFile *)second)->name);
 }
 
-int move_files(const char *src, const char *dest_path, const char *dest_name) {
+int move_files(const char *src, const char *dest_path, const char *dest_name, bool is_dir) {
     char buf[MAX_BUF_SIZE];
+    if (is_dir) {
+        snprintf(buf,  sizeof(buf), "%s/%s", dest_path, dest_name);
+        DIR *dir = opendir(buf);
+        if (dir != NULL) {
+            return HAS_SAME_PATH;
+        }
+        snprintf(buf, sizeof(buf), "cp -r %s %s/%s", src, dest_path, dest_name);
+        return system(buf);
+    }
     snprintf(buf, PATH_MAX, "%s/%s", dest_path, dest_name);
-
+    
     FILE * file = fopen(buf, "r");
 
     if (file != NULL) {
