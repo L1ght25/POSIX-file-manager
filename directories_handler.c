@@ -90,7 +90,6 @@ void directory_handler(const char *input_path) {
         exit(1);
     }
     clear_screen();
-    printf("%s\n", files[0].name);
     print_directories(begin_str, files, count_of_files, selected_dir);
     while (1) {
         int symb = getchar();
